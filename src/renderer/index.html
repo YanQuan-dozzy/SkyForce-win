@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src https://api.deepseek.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>SkyForce</title>
+  <link rel="icon" href="./favicon.ico?v=20260708">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">SF</div>
+        <div><strong>SkyForce</strong><span>Windows 乐谱工作台</span></div>
+      </div>
+      <nav id="main-nav">
+        <button class="nav-item active" data-page="home"><span>⌂</span>概览</button>
+        <button class="nav-item" data-page="convert"><span>⇄</span>格式转换</button>
+        <button class="nav-item" data-page="editor"><span>♫</span>乐谱编辑</button>
+        <button class="nav-item" data-page="midi"><span>▥</span>MIDI 转 JSON</button>
+        <button class="nav-item" data-page="image"><span>▧</span>简谱长图</button>
+        <button class="nav-item" data-page="chord"><span>♬</span>自动和弦</button>
+        <button class="nav-item" data-page="library"><span>◷</span>历史记录</button>
+        <button class="nav-item" data-page="settings"><span>⚙</span>设置与数据</button>
+      </nav>
+      <div class="sidebar-foot">
+        <span id="runtime-state">本地模式</span>
+        <small id="app-version">v1.0.0</small>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">SKYSTUDIO · AUTOJS</p>
+          <h1 id="page-title">工作台概览</h1>
+        </div>
+        <div class="top-actions">
+          <span class="offline-badge">● 核心功能离线可用</span>
+          <button class="ghost-button" id="open-logs">打开日志目录</button>
+        </div>
+      </header>
+
+      <section class="page active" data-page-panel="home">
+        <div class="hero-card">
+          <div>
+            <span class="hero-kicker">独立 Windows 应用</span>
+            <h2>转换、编辑和整理你的 SkyStudio 乐谱。</h2>
+            <p>无需 phpStudy、浏览器、PHP 或 MySQL。文件只在本机处理，DeepSeek AI 是唯一可选网络能力。</p>
+            <div class="button-row">
+              <button class="primary-button" data-go="convert">开始转换</button>
+              <button class="secondary-button" data-go="editor">打开编辑器</button>
+            </div>
+          </div>
+          <div class="hero-visual" aria-hidden="true">
+            <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+            <div class="music-core">♪</div>
+          </div>
+        </div>
+        <div class="stat-grid">
+          <article><span>转换记录</span><strong id="home-history-count">0</strong><small>保存在本机 SQLite</small></article>
+          <article><span>脚本模板</span><strong>3</strong><small>按压 / 按压新 / 长按</small></article>
+          <article><span>工作模式</span><strong>8</strong><small>从转换到创意工具</small></article>
+          <article><span>运行依赖</span><strong>0</strong><small>最终用户无需开发环境</small></article>
+        </div>
+        <div class="tool-grid">
+          <button data-go="convert"><b>TXT ⇄ JS</b><span>单文件和批量转换，支持三种模板。</span></button>
+          <button data-go="editor"><b>乐谱编辑器</b><span>键盘录入、和弦、试听和脚本生成。</span></button>
+          <button data-go="midi"><b>MIDI 提取</b><span>读取速度变化并映射到 15/21 键。</span></button>
+          <button data-go="image"><b>简谱长图</b><span>把编辑器乐谱排版为 PNG。</span></button>
+          <button data-go="chord"><b>自动和弦</b><span>本地规则或可选 DeepSeek AI。</span></button>
+          <button data-go="library"><b>本地资料库</b><span>查看转换状态、错误和输出位置。</span></button>
+        </div>
+      </section>
+
+      <section class="page" data-page-panel="convert">
+        <div class="section-heading">
+          <div><span>CONVERTER</span><h2>格式转换</h2><p>文件夹批量直接使用原生文件选择，不经过上传或本地服务器。</p></div>
+        </div>
+        <div class="two-column">
+          <article class="panel">
+            <div class="field-grid">
+              <label>转换方向
+                <select id="convert-mode">
+                  <option value="txt-to-js">SkyStudio TXT → AutoJS JS</option>
+                  <option value="js-to-txt">AutoJS JS → SkyStudio TXT</option>
+                  <option value="js-to-js">AutoJS 模板互转</option>
+                </select>
+              </label>
+              <label>输出模板
+                <select id="convert-template">
+                  <option value="press">按压（经典）</option>
+                  <option value="press_new">按压新（进度控制）</option>
+                  <option value="long_press">长按（延音）</option>
+                </select>
+              </label>
+              <label id="source-template-field" class="hidden">源模板
+                <select id="convert-source-template">
+                  <option value="auto">自动识别</option>
+                  <option value="press">按压</option>
+                  <option value="press_new">按压新</option>
+                  <option value="long_press">长按</option>
+                </select>
+              </label>
+            </div>
+            <div class="drop-card" id="convert-drop">
+              <div class="drop-icon">⇧</div>
+              <strong>选择一个或多个输入文件</strong>
+              <p>支持中文路径；单文件不超过 10MiB，最多 500 个。</p>
+              <button class="secondary-button" id="choose-convert-files">选择文件</button>
+            </div>
+            <div class="file-list" id="convert-file-list"><p class="empty">尚未选择文件</p></div>
+            <label>输出目录
+              <div class="path-control"><input id="convert-output-dir" readonly placeholder="请选择输出目录"><button id="choose-output-dir">浏览…</button></div>
+            </label>
+            <div class="button-row">
+              <button class="primary-button" id="run-convert" disabled>开始转换</button>
+              <span class="status-text" id="convert-status"></span>
+            </div>
+          </article>
+          <article class="panel results-panel">
+            <div class="panel-title"><div><span>RESULTS</span><h3>处理结果</h3></div><button class="ghost-button" id="reveal-last-output" disabled>打开输出目录</button></div>
+            <div id="convert-results" class="results-list"><div class="empty-state"><b>等待任务</b><span>成功、失败和耗时会显示在这里。</span></div></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="page" data-page-panel="editor">
+        <div class="section-heading">
+          <div><span>SCORE EDITOR</span><h2>乐谱编辑器</h2><p>使用 c4-d4&e4~ 记谱；“- / ~ / ,”分别表示默认、短、长间隔。</p></div>
+          <div class="button-row"><button class="ghost-button" id="editor-import">导入 TXT/JSON</button><button class="ghost-button" id="editor-reference">参考图/PDF</button></div>
+        </div>
+        <div class="editor-layout">
+          <article class="panel editor-main">
+            <div class="editor-toolbar">
+              <label>名称<input id="editor-name" value="未命名乐谱"></label>
+              <label>默认<input id="interval-default" type="number" value="400" min="20" max="5000"></label>
+              <label>短<input id="interval-short" type="number" value="200" min="20" max="5000"></label>
+              <label>长<input id="interval-long" type="number" value="800" min="20" max="5000"></label>
+            </div>
+            <label>试听音色
+              <select id="editor-sound">
+                <option value="oscillator">内置合成音</option>
+                <option value="bright-bell">明亮铃音</option>
+                <option value="soft-keys">柔和琴键</option>
+              </select>
+            </label>
+            <label>脚本模板
+              <select id="editor-script-template">
+                <option value="default">标准暂停/调速模板</option>
+                <option value="simple">简化按压模板</option>
+                <option value="custom">我的自定义模板</option>
+              </select>
+            </label>
+            <textarea id="score-input" class="score-input" spellcheck="false" placeholder="c4-d4&e4~g4,c5-"></textarea>
+            <div class="score-keypad" id="score-keypad"></div>
+            <div class="button-row wrap">
+              <button class="primary-button" id="editor-preview">试听</button>
+              <button class="secondary-button" id="editor-stop">停止</button>
+              <button class="secondary-button" id="editor-generate">生成 AutoJS</button>
+              <button class="secondary-button" id="editor-save-score">保存 TXT</button>
+              <span class="status-text" id="editor-status"></span>
+            </div>
+          </article>
+          <aside class="panel preview-panel">
+            <div class="panel-title"><div><span>OUTPUT</span><h3>脚本预览</h3></div><button class="ghost-button" id="editor-save-js" disabled>另存 JS</button></div>
+            <pre id="editor-code">// 输入乐谱后点击“生成 AutoJS”</pre>
+            <div id="reference-stage" class="reference-stage hidden"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="page" data-page-panel="midi">
+        <div class="section-heading"><div><span>MIDI</span><h2>MIDI 转 SkyStudio JSON</h2><p>本地解析 Format 0/1、运行状态和速度变化；SMPTE 时间格式暂不支持。</p></div></div>
+        <div class="two-column">
+          <article class="panel">
+            <div class="drop-card"><div class="drop-icon">▥</div><strong>选择 .mid / .midi 文件</strong><p id="midi-file-label">尚未选择</p><button class="secondary-button" id="choose-midi">选择 MIDI</button></div>
+            <div class="field-grid">
+              <label>键位范围<select id="midi-range"><option value="15">15 键 c4-c6</option><option value="21">21 键 c4-b6</option></select></label>
+              <label>八度偏移<input id="midi-octave" type="number" min="-4" max="4" value="0"></label>
+              <label>时间量化（ms）<input id="midi-quantize" type="number" min="1" max="2000" value="40"></label>
+            </div>
+            <button class="primary-button" id="run-midi" disabled>生成 JSON</button>
+            <span class="status-text" id="midi-status"></span>
+          </article>
+          <article class="panel preview-panel"><div class="panel-title"><div><span>JSON</span><h3>生成结果</h3></div><button class="ghost-button" id="save-midi-json" disabled>保存 JSON</button></div><pre id="midi-output">// 等待 MIDI 文件</pre></article>
+        </div>
+      </section>
+
+      <section class="page" data-page-panel="image">
+        <div class="section-heading"><div><span>SCORE IMAGE</span><h2>简谱长图</h2><p>直接读取编辑器内容，生成适合保存与分享的黑字白底 PNG。</p></div></div>
+        <div class="two-column">
+          <article class="panel">
+            <label>乐谱名称<input id="image-title" value="未命名乐谱"></label>
+            <label>乐谱内容<textarea id="image-score" class="compact-textarea" placeholder="c4-d4&e4~g4,"></textarea></label>
+            <div class="button-row"><button class="secondary-button" id="image-from-editor">使用编辑器内容</button><button class="primary-button" id="render-image">生成长图</button><button class="secondary-button" id="save-image" disabled>保存 PNG</button></div>
+            <span class="status-text" id="image-status"></span>
+          </article>
+          <article class="panel canvas-panel"><canvas id="score-canvas" width="1400" height="800"></canvas></article>
+        </div>
+      </section>
+
+      <section class="page" data-page-panel="chord">
+        <div class="section-heading"><div><span>AUTO CHORD</span><h2>自动和弦</h2><p>本地规则无需网络；配置个人 API Key 后可选择 DeepSeek。</p></div></div>
+        <div class="two-column">
+          <article class="panel">
+            <div class="field-grid">
+              <label>生成方式<select id="chord-mode"><option value="local">本地规则</option><option value="ai">DeepSeek AI</option></select></label>
+              <label>调性<select id="chord-key"><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>A</option><option>B</option></select></label>
+              <label>风格<select id="chord-style"><option>流行</option><option>抒情</option><option>轻快</option><option>古典</option></select></label>
+            </div>
+            <label>补充要求<input id="chord-instruction" placeholder="例如：少用复杂和弦"></label>
+            <label>乐谱<textarea id="chord-score" class="compact-textarea" placeholder="c4-d4&e4~g4,"></textarea></label>
+            <div class="button-row"><button class="secondary-button" id="chord-from-editor">使用编辑器内容</button><button class="primary-button" id="run-chord">生成和弦</button></div>
+            <span class="status-text" id="chord-status"></span>
+          </article>
+          <article class="panel"><div class="panel-title"><div><span>PLAN</span><h3>和弦方案</h3></div><button class="ghost-button" id="apply-chords" disabled>应用到编辑器</button></div><div id="chord-output" class="chord-grid"><div class="empty-state"><b>暂无方案</b><span>生成后会列出原音、和弦名和新增音。</span></div></div></article>
+        </div>
+      </section>
+
+      <section class="page" data-page-panel="library">
+        <div class="section-heading"><div><span>LOCAL LIBRARY</span><h2>转换历史</h2><p>数据保存在本机 SQLite，不会上传。</p></div><div class="button-row"><button class="ghost-button" id="refresh-history">刷新</button><button class="danger-button" id="clear-history">清空历史</button></div></div>
+        <article class="panel table-panel"><table><thead><tr><th>时间</th><th>源文件</th><th>方向</th><th>模板</th><th>音符</th><th>耗时</th><th>状态</th></tr></thead><tbody id="history-body"></tbody></table></article>
+      </section>
+
+      <section class="page" data-page-panel="settings">
+        <div class="section-heading"><div><span>SETTINGS & DATA</span><h2>设置与数据</h2><p>配置持久化、API 密钥和旧项目资料导入。</p></div></div>
+        <div class="settings-grid">
+          <article class="panel">
+            <div class="panel-title"><div><span>APPEARANCE</span><h3>编辑偏好</h3></div></div>
+            <label>主题<select id="setting-theme"><option value="aurora">蓝粉极光</option><option value="ocean">清爽蓝</option><option value="mint">薄荷绿</option><option value="dark">曜石黑</option></select></label>
+            <label class="toggle-row"><span><b>使用 21 键</b><small>关闭时使用传统 15 键</small></span><input id="setting-21-keys" type="checkbox"></label>
+            <label>默认导出目录<div class="path-control"><input id="setting-export-dir" readonly><button id="setting-choose-dir">浏览…</button></div></label>
+          </article>
+          <article class="panel">
+            <div class="panel-title"><div><span>AI</span><h3>DeepSeek</h3></div><span id="ai-key-state" class="pill">未配置</span></div>
+            <label>API Key<input id="deepseek-key" type="password" placeholder="仅使用 Windows DPAPI 加密存储"></label>
+            <label>接口地址<input id="deepseek-url" value="https://api.deepseek.com"></label>
+            <label>模型<input id="deepseek-model" value="deepseek-chat"></label>
+            <div class="button-row"><button class="primary-button" id="save-ai-settings">保存</button><button class="danger-button" id="clear-ai-key">清除 Key</button></div>
+          </article>
+          <article class="panel">
+            <div class="panel-title"><div><span>LEGACY</span><h3>旧项目导入</h3></div></div>
+            <p class="muted">导入原项目的 `converted`、`downloads` 和音色包文件。源目录保持只读。</p>
+            <div class="path-control"><input id="legacy-source" value="D:\phpstudy_pro\WWW\www.AuToJs.com"><button id="choose-legacy-source">浏览…</button></div>
+            <button class="secondary-button" id="run-legacy-import">开始导入</button>
+            <span class="status-text" id="legacy-status"></span>
+          </article>
+          <article class="panel">
+            <div class="panel-title"><div><span>TEMPLATE</span><h3>自定义脚本模板</h3></div></div>
+            <p class="muted">至少包含 <code>{{scoreJson}}</code>。可用：{{title}}、{{coordsJson}}、{{pressTime}}、{{scoreJson}}。</p>
+            <textarea id="custom-script-template" class="compact-textarea" spellcheck="false"></textarea>
+            <button class="secondary-button" id="save-custom-template">保存模板</button>
+            <span class="status-text" id="custom-template-status"></span>
+          </article>
+          <article class="panel">
+            <div class="panel-title"><div><span>PATHS</span><h3>本地存储</h3></div></div>
+            <dl id="app-paths" class="path-list"></dl>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="./app.ts"></script>
+</body>
+</html>

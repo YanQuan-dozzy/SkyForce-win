@@ -1,0 +1,75 @@
+{
+  "name": "skyforce-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "author": "SkyForce Desktop Contributors",
+  "license": "Apache-2.0",
+  "description": "SkyStudio score conversion and AutoJS desktop toolkit for Windows",
+  "main": "dist/electron/electron/main.js",
+  "scripts": {
+    "dev": "concurrently -k \"vite --host 127.0.0.1\" \"tsc -p tsconfig.electron.json --watch\" \"wait-on tcp:5173 file:dist/electron/main.js && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .\"",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.electron.json --noEmit",
+    "test": "vitest run",
+    "build:renderer": "vite build",
+    "build:electron": "tsc -p tsconfig.electron.json",
+    "build": "npm run typecheck && npm run test && npm run build:renderer && npm run build:electron",
+    "dist:win": "npm run build && electron-builder --win nsis portable --x64",
+    "verify:package": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-package.ps1",
+    "verify:installer": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-installer.ps1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "concurrently": "^9.2.0",
+    "cross-env": "^10.0.0",
+    "electron": "^43.0.0",
+    "electron-builder": "^26.0.20",
+    "typescript": "^5.9.0",
+    "vite": "^7.0.0",
+    "vitest": "^3.2.0",
+    "wait-on": "^8.0.0"
+  },
+  "build": {
+    "appId": "com.skyforce.desktop",
+    "productName": "SkyForce",
+    "asar": true,
+    "electronDist": "node_modules/electron/dist",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json",
+      "LICENSES/**/*"
+    ],
+    "win": {
+      "icon": "src/renderer/favicon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "artifactName": "${productName}-${version}-${arch}-setup.${ext}",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SkyForce",
+      "deleteAppDataOnUninstall": false,
+      "unicode": true
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-${arch}-portable.${ext}"
+    }
+  }
+}
